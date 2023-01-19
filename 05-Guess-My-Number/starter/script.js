@@ -1,6 +1,13 @@
 'use strict';
 
-//DOM SELECTORS
+///////////////////////////////////////////////////////////////////////////////////////
+//                                                                                   //
+//                                 INITIALISATION                                    //
+//                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////
+
+// ----- ////// DOM SELECTORS ////// ------ //
+
 const againBtn = document.querySelector('.btn.again'),
   checkBtn = document.querySelector('.btn.check'),
   guessInput = document.querySelector('input.guess'),
@@ -10,90 +17,145 @@ const againBtn = document.querySelector('.btn.again'),
   secretNumberDiv = document.querySelector('div.number'),
   root = document.querySelector(':root');
 
+// ----- ////// DATA ////// ------ //
+
 const SCORE_DEFAULT = 500,
-  SCORE_STEP = 50;
+  SCORE_STEP = 50,
+  MAX_SECRET_NUMBER = 20;
 
-  //initialize data
-let secretNumber = Math.ceil(Math.random() * 20),
-  highscore = 0,
-  score = SCORE_DEFAULT;
-  labelScore.innerText = score;
+let secretNumber,
+  score,
+  highscore = 0;
 
-function playerVictory() {
-  //set highsocre
-  if (score > highscore) {
-    highscore = score;
-    labelHighscore.innerHTML = highscore;
-  }
-  //show green bg
-  root.style.setProperty('--activeColor', 'var(--colorVictory)');
-  guessMessage.innerText = 'You Win !';
-  secretNumberDiv.innerText = secretNumber;
-}
+updateScore('reset');
+rollSecretNumber();
 
-function playerDefeat() {
-  //change colors to defeat and disable inputs
-  root.style.setProperty('--activeColor', 'var(--colorDefeat)');
-  guessMessage.innerText = 'You lost... Try again !';
-  guessInput.setAttribute('disabled', true);
-  checkBtn.setAttribute('disabled', true);
-  secretNumberDiv.innerText = secretNumber;
-}
+// ----- ////// EVENT LISTENERS ////// ------ //
 
-function checkInput() {
-  //reset styling to default in case it was changed
-  guessMessage.style.color = 'var(--colorLight)';
-  guessInput.style.borderColor = 'var(--colorLight)';
-  //change styling if entry isn't a number
-  if (guessInput.value === '') {
-    guessMessage.innerText = "You didn't enter a number !";
-    guessMessage.style.color = 'var(--colorDefeat)';
-    guessInput.style.borderColor = 'var(--colorDefeat)';
-  } else if (guessInput.value == secretNumber) {
-    playerVictory();
-  } else {
-    //update score
-    score -= SCORE_STEP;
-    labelScore.innerText = score;
-
-    //check for defeat
-    if (score === 0) {
-      playerDefeat();
-    }
-    //Show intell to help find the number
-    else if (guessInput.value > secretNumber) {
-      guessMessage.innerText = `${guessInput.value} is too high...'`;
-      secretNumberDiv.innerText = '↓';
-    } else {
-      guessMessage.innerText = `${guessInput.value} is too low...`;
-      secretNumberDiv.innerText = '↑';
-    }
-    //Reset input to avoid double send
-    guessInput.value = null;
-  }
-}
-
-function resetGame() {
-  //reset score and number
-  secretNumber = Math.ceil(Math.random() * 20);
-  score = SCORE_DEFAULT;
-  labelScore.innerText = score;
-  secretNumberDiv.innerText = '?';
-  //reset input
-  guessInput.value = null;
-  //reset bacground
-  root.style.setProperty('--activeColor', 'var(--colorDark)');
-  //reset disabled in case of loss
-  guessInput.removeAttribute('disabled');
-  checkBtn.removeAttribute('disabled');
-  //reset messenge
-  guessMessage.innerText = 'Start guessing...';
-}
-
-//EVENT LISTENERS
 againBtn.addEventListener('click', resetGame);
 checkBtn.addEventListener('click', checkInput);
-//on enter we check input too
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter') checkInput();
 });
+
+///////////////////////////////////////////////////////////////////////////////////////
+//                                                                                   //
+//                                 FUNCTIONS                                         //
+//                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////
+
+// ----- ////// DISPLAY MANAGEMENT ////// ------ //
+
+function displayOnMessage(message) {
+  guessMessage.innerText = message;
+}
+
+function displayOnSecretNumber(value) {
+  secretNumberDiv.innerText = value;
+}
+
+function displayScores() {
+  labelScore.innerText = score;
+  labelHighscore.innerText = highscore;
+}
+
+function changePageColor(colorName) {
+  root.style.setProperty('--activeColor', `var(--color${colorName})`);
+}
+
+function displayInputError(display) {
+  if (display) {
+    guessMessage.style.color = 'var(--colorDefeat)';
+    guessInput.style.borderColor = 'var(--colorDefeat)';
+  } else {
+    guessMessage.style.color = 'var(--colorLight)';
+    guessInput.style.borderColor = 'var(--colorLight)';
+  }
+}
+
+function allowInputs(allow) {
+  if (allow) {
+    guessInput.removeAttribute('disabled');
+    checkBtn.removeAttribute('disabled');
+  } else {
+    guessInput.setAttribute('disabled', true);
+    checkBtn.setAttribute('disabled', true);
+  }
+}
+
+// ----- ////// NUMBERS MANAGEMENT ////// ------ //
+
+function updateScore(type) {
+  switch (type) {
+    case 'reset':
+      score = SCORE_DEFAULT;
+      break;
+    case 'decrease':
+      score -= SCORE_STEP;
+  }
+  displayScores();
+}
+
+function rollSecretNumber(max) {
+  secretNumber = Math.ceil(Math.random() * MAX_SECRET_NUMBER);
+}
+
+function updateHighScore() {
+  if (score > highscore) {
+    highscore = score;
+    displayScores();
+  }
+}
+
+function resetInput() {
+  guessInput.value = null;
+}
+
+// ----- ////// GAMEPLAY ////// ------ //
+
+function checkInput() {
+  displayInputError(false);
+  if (guessInput.value === '') {
+    displayOnMessage("You didn't enter a number !");
+    displayInputError(true);
+  } else if (guessInput.value == secretNumber) {
+    playerVictory();
+  } else {
+    updateScore('decrease');
+    if (score === 0) {
+      playerDefeat();
+    } else if (guessInput.value > secretNumber) {
+      displayOnMessage(`${guessInput.value} is too high...'`);
+      displayOnSecretNumber('↓');
+    } else {
+      displayOnMessage(`${guessInput.value} is too low...'`);
+      displayOnSecretNumber('↑');
+    }
+    resetInput();
+  }
+}
+
+function playerVictory() {
+  updateHighScore();
+  changePageColor('Victory');
+  displayOnMessage('You win !');
+  displayOnSecretNumber(secretNumber);
+}
+
+function playerDefeat() {
+  changePageColor('Defeat');
+  displayOnMessage('You lost... Try again !');
+  allowInputs(false);
+  displayOnSecretNumber(secretNumber);
+}
+
+function resetGame() {
+  rollSecretNumber();
+  updateScore('reset');
+  displayScores();
+  displayOnSecretNumber('?');
+  resetInput();
+  changePageColor('Dark');
+  allowInputs(true);
+  displayOnMessage('Start guessing...');
+}
