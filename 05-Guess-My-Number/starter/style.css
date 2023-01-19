@@ -4,6 +4,15 @@
   margin: 0;
   padding: 0;
   box-sizing: inherit;
+  outline : none;
+}
+
+:root{
+  --colorDark : #222;
+  --colorLight : #eee;
+  --colorVictory : #60b347;
+  --colorDefeat : #aa381e;
+  --activeColor : var(--colorDark);
 }
 
 html {
@@ -13,21 +22,20 @@ html {
 
 body {
   font-family: 'Press Start 2P', sans-serif;
-  color: #eee;
-  background-color: #222;
-  /* background-color: #60b347; */
+  color: var(--colorLight);
+  background-color: var(--activeColor);
 }
 
 /* LAYOUT */
 header {
   position: relative;
   height: 35vh;
-  border-bottom: 7px solid #eee;
+  border-bottom: 7px solid var(--colorLight);
 }
 
 main {
   height: 65vh;
-  color: #eee;
+  color: var(--colorLight);
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -57,8 +65,8 @@ h1 {
 }
 
 .number {
-  background: #eee;
-  color: #333;
+  background: var(--colorLight);
+  color: var(--activeColor);
   font-size: 6rem;
   width: 15rem;
   padding: 3rem 0rem;
@@ -84,7 +92,7 @@ h1 {
 
 .guess {
   background: none;
-  border: 4px solid #eee;
+  border: 4px solid var(--colorLight);
   font-family: inherit;
   color: inherit;
   font-size: 5rem;
@@ -97,8 +105,8 @@ h1 {
 
 .btn {
   border: none;
-  background-color: #eee;
-  color: #222;
+  background-color: var(--colorLight);
+  color: var(--activeColor);
   font-size: 2rem;
   font-family: inherit;
   padding: 2rem 3rem;
